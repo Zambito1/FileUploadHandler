@@ -1,4 +1,4 @@
-package FileUpload
+package main
 
 import (
 	"crypto/rand"
@@ -9,16 +9,16 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	// "time"
 )
 
 const maxUploadSize = 2 * 1024 // 2 mb, easily modified if need be
 const uploadPath = "./tmp"
 
-func main() 
-{
-	http.HandleFunc("/upload", uploadFileHandler()) 
+func main() {
+	http.HandleFunc("/upload", uploadFileHandler())
 
-	crutime := time.Now().Unix() // timeStamp, needs test 
+	// crutime := time.Now().Unix() // timeStamp, needs test 
 
 	fs := http.FileServer(http.Dir(uploadPath))
 	http.Handle("/files/", http.StripPrefix("/files", fs))
@@ -27,18 +27,15 @@ func main()
 	log.Fatal(http.ListenAndServe(":8080", nil)) // not sure of the best place to keep files
 }
 
-func uploadFileHandler() http.HandlerFunc 
-{
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) 
-	{
+func uploadFileHandler() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// validate file size
 		r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 		if err := r.ParseMultipartForm(maxUploadSize); err != nil {
 			renderError(w, "FILE_TOO_LARGE", http.StatusBadRequest)
-			return	
+			return
 		}
-	}
- 
+
 		// parse and validate file and post parameters
 		fileType := r.PostFormValue("type")
 		file, _, err := r.FormFile("uploadFile")
@@ -88,15 +85,13 @@ func uploadFileHandler() http.HandlerFunc
 	})
 }
 
-func randToken(len int) string 
-{
+func randToken(len int) string {
 	b := make([]byte, len)
 	rand.Read(b)
 	return fmt.Sprintf("%x", b)
 }
 
-func renderError(w http.ResponseWriter, message string, statusCode int) 
-{
+func renderError(w http.ResponseWriter, message string, statusCode int) {
 	w.WriteHeader(http.StatusBadRequest)
 	w.Write([]byte(message))
 }
