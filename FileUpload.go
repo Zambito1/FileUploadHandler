@@ -1,14 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"crypto/rand"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
+
 	// "time"
 )
 
@@ -29,8 +33,24 @@ func main() {
 
 	log.Print("Server started on localhost:8080, use /upload for uploading files and /files/{fileName} for downloading")
 	log.Fatal(http.ListenAndServe(":8080", nil)) // not sure of the best place to keep files
-}
 
+
+}
+/*
+func postFile(filename string, targetUrl string) error {
+	bodyBuf := &bytes.Buffer{}
+	bodyWrite := multipart.NewWriter(bodyBuf)
+
+	fileWriter, err := bodyWrite.CreateFormFile("uploadFile" , filename)
+	if err != nil{
+		renderError(w, "ERROR_WRITING_TO_BUFFER", http.StatusBadRequest)
+	}
+	fileHandler, err := os.Open(filename)
+	if err != nil{
+		renderError(w, "ERROR_OPENING_FILE", http.StatusBadRequest)
+	}
+}
+*/
 func uploadFileHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// validate file size
@@ -41,14 +61,26 @@ func uploadFileHandler() http.HandlerFunc {
 		}
 
 		// parse and validate file and post parameters
-		fileType := r.PostFormValue("type")
+		/*fileType := r.PostFormValue("type")
 		file, _, err := r.FormFile("uploadFile")
 		if err != nil {
 			renderError(w, "INVALID_FILE", http.StatusBadRequest)
 			return
+
+		} */
+		var Buf bytes.Buffer
+		fileType := r.PostFormValue("type")
+		file, header, err := r.FormFile("uploadFile")
+		if err != nil{
+			renderError(w, "ERROR_UPLOADING_FILE", http.StatusBadRequest)
+
 		}
 		defer file.Close()
 		fileBytes, err := ioutil.ReadAll(file)
+		name := strings.Split(header.Filename, ".")
+		fmt.Printf("File name %s\n", name[0])
+		// Copy file data into buffer
+		io.Copy(&Buf, file)
 		if err != nil {
 			renderError(w, "INVALID_FILE", http.StatusBadRequest)
 			return
