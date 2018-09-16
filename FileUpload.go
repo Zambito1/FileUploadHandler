@@ -12,7 +12,7 @@ import (
 	// "time"
 )
 
-const maxUploadSize = 2 * 1024 // 2 mb, easily modified if need be
+const maxUploadSize = 1024 * 1024 // 1 gb, easily modified if need be
 const uploadPath = "./tmp"
 
 func main() {
@@ -22,6 +22,10 @@ func main() {
 
 	fs := http.FileServer(http.Dir(uploadPath))
 	http.Handle("/files/", http.StripPrefix("/files", fs))
+
+	// Going to the index page will display the contents of the root directory
+	http.Handle("/", http.FileServer(http.Dir(".")))
+
 
 	log.Print("Server started on localhost:8080, use /upload for uploading files and /files/{fileName} for downloading")
 	log.Fatal(http.ListenAndServe(":8080", nil)) // not sure of the best place to keep files
