@@ -4,7 +4,7 @@
 </head>
 <body>
 	<!--enctype for image file uploads-->
-<form enctype="multipart/form-data" action="http://127.0.0.1:8080/upload" method="post"> 
+<form enctype="multipart/form-data" action="/upload" method="post"> 
     <input type="file" name="uploadfile" />
     <input type="hidden" name="token" value="{{.}}"/>
     <input type="submit" value="upload" />
